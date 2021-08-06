@@ -1,0 +1,64 @@
+
+
+*Model mosfets*
+.model NMOD1CAP NMOS
++ vto = 0.71 gamma = 0.01
++ phi = 0.6 kp= 182e-6
++ lambda = 0.01
++ tox = 9.6e-9
++ cj = 350e-6 cjsw = 120e-12
++ pb = 0.8 mj=0.33 mjsw = 0.33
++ cgso = 0.046e-9 cgdo = 0.046e-9
+*
+.model PMOD1CAP PMOS LEVEL=1
++ vto = -0.901 gamma = 0.01
++ phi = 0.6 kp= 41.5e-6
++ lambda = 0.01
++ tox = 9.6e-9
++ cj = 350e-6 cjsw = 120e-12
++ pb = 0.8 mj=0.33 mjsw = 0.33
++ cgso = 0.046e-9 cgdo = 0.046e-9
+*
+*					inverting input
+*					| non inverting input
+*					|  |  output
+*					|  |  |	  VDD
+*					|  |  |   |	 VSS
+*					|  |  |   |  |
+.SUBCKT OPAMP_BASE V-  V+ out VD VS
+*mosfet syntax*
+*Mname drain gate source body model L W
+*differential amp*
+M1 D1 V- S1 S1 NMOD1CAP L=11u W=11u
+M2 D2 V+ S1 S1 NMOD1CAP L=11u W=11u
+M5 S1 D8 VS VS NMOD1CAP L=1u W= 0.6u
+
+*current mirror loading for the differential amp*
+M3 D1 D1 VD VD PMOD1CAP L=1u W=1.5u
+M4 D2 D1 VD VD PMOD1CAP L=1u W=1.5u
+
+*Second stage Cascode amplifier*
+M6 out D2 VD VD PMOD1CAP L= 1u W=16u
+M7 out D8 VS VS NMOD1CAP L= 1u W=3.6u
+
+*widlar source*
+M8 D8 D8 VS VS NMOD1CAP L= 1u W= .6u
+M14 D14 D8 RB+ RB+ NMOD1CAP L=1u W=.6u
+RB RB+ VS 3100
+
+*compensation capacitance*
+CC D9 out 1pF
+M9 D9 D14 D2 D2 NMOD1CAP L= 1u W= 3u
+
+*load capacitance*
+CL out 0 5pF
+
+*bias current sources*
+M13 D13 D13 VD VD PMOD1CAP L= 1u W= .6u
+M12 D14 D14 D13 D13 PMOD1CAP L= 1u W= .6u
+M11 D11 D13 VD VD PMOD1CAP L= 1u W= .6u
+M10 D8 D8 D11 D11 PMOD1CAP L= 1u W= .6u
+
+
+.ENDS OPAMP_BASE
+
